@@ -1,0 +1,47 @@
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches:
+      - main      # vagy master / bármi, amelyik ágról akarsz deployolni
+  workflow_dispatch: # manuális indítás gombbal is
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Repo behúzása GitHubról (ez a „behív github repositoryt” része)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Node.js környezet (ha JS/TS projekt)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # 3. Dependenciák
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      # 4. Build (ha van build script, ha nincs, simán lefut és továbbmegy)
+      - name: Build project
+        run: npm run build --if-present
+
+      # 5. Wrangler telepítése
+      - name: Install Wrangler
+        run: npm install -g wrangler
+
+      # 6. Deploy Cloudflare-re
+      - name: Deploy to Cloudflare Workers
+        run: wrangler deploy
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+.github/workflows/cloudflare-deploy.yml
