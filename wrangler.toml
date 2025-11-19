@@ -1,0 +1,13 @@
+# wrangler.toml
+
+name = "project-neved"      # Worker neve
+main = "src/index.js"       # Belépési pont (JS/TS fájl)
+compatibility_date = "2024-01-01"
+
+account_id = "CF_ACCOUNT_ID_IDE"  # Cloudflare account ID (Dashból)
+workers_dev = true                # teszteléshez jó, routes helyett
+
+# Ha konkrét domainre akarod:
+# routes = [
+#   { pattern = "app.sajatdomain.hu/*", zone_id = "ZONED_ID_IDE" }
+#]
