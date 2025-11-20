@@ -1,0 +1,107 @@
+{
+  "name": "AIRental",
+  "type": "object",
+  "properties": {
+    "rentalId": {
+      "type": "string",
+      "description": "Unique rental identifier"
+    },
+    "moduleId": {
+      "type": "string",
+      "description": "Rented module ID"
+    },
+    "moduleName": {
+      "type": "string",
+      "description": "Rented module name"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Client ID who rented"
+    },
+    "clientName": {
+      "type": "string",
+      "description": "Client name"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "time_rental",
+        "pay_per_use"
+      ],
+      "description": "Rental mode"
+    },
+    "durationMinutes": {
+      "type": "number",
+      "description": "Duration in minutes (for time_rental)"
+    },
+    "credits": {
+      "type": "number",
+      "description": "Remaining credits (for pay_per_use)"
+    },
+    "expiresAt": {
+      "type": "string",
+      "description": "Expiry timestamp (for time_rental)"
+    },
+    "estimatedPriceEur": {
+      "type": "number",
+      "description": "Estimated rental price in EUR"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Is rental active"
+    },
+    "usageCount": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of executions"
+    },
+    "totalChargeEur": {
+      "type": "number",
+      "default": 0,
+      "description": "Total charges accumulated"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "depleted",
+        "cancelled"
+      ],
+      "default": "active",
+      "description": "Rental status"
+    },
+    "apiKey": {
+      "type": "string",
+      "description": "Client API key used"
+    },
+    "executionLogs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "object"
+          },
+          "result": {
+            "type": "object"
+          },
+          "chargeEur": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Execution history"
+    }
+  },
+  "required": [
+    "rentalId",
+    "moduleId",
+    "clientId",
+    "mode"
+  ]
+}
