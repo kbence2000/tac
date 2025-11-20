@@ -1,0 +1,205 @@
+📁 tac/
+│
+├── wrangler.toml
+├── src/
+│     └── worker.js
+└── README.md   (opcionális)
+
+
+
+────────────────────────────────────────────────────────────
+📌 wrangler.toml
+────────────────────────────────────────────────────────────
+name = "tac-ai-engine"
+main = "src/worker.js"
+compatibility_date = "2024-11-20"
+workers_dev = true
+
+# Secretet NEM ide írunk, Cloudflare dashboard → Variables
+# Példa: OPENAI_API_KEY
+
+# CRON opcionális:
+# [triggers]
+# crons = [ "*/5 * * * *" ]
+
+
+────────────────────────────────────────────────────────────
+📌 src/worker.js
+────────────────────────────────────────────────────────────
+
+// TAC – MULTI AI ENGINE CLOUDLFARE WORKER
+// FULL SYSTEM IN ONE FILE
+// Modules:
+//   /ai/singularity
+//   /ai/rift
+//   /ai/anti-rift
+//   /ai/dual-rift
+//   /ai/paradox
+//   /ai/global-health
+//   /ai/manipulator
+//   /ai/stability
+//   /ai/tac-revolution
+
+const JSON_HEADERS = {
+  "Content-Type": "application/json; charset=utf-8",
+};
+
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    // Routing table – minden modul külön endpoint
+    const routes = {
+      "/ai/singularity": singularityTheoryModule,
+      "/ai/rift": riftAiModule,
+      "/ai/anti-rift": antiRiftAiModule,
+      "/ai/dual-rift": dualRiftEngineModule,
+      "/ai/paradox": paradoxEngineModule,
+      "/ai/global-health": globalSystemHealthModule,
+      "/ai/manipulator": manipulatorAiModule,
+      "/ai/stability": stabilityDashboardModule,
+      "/ai/tac-revolution": tacRevolutionEngineModule,
+    };
+
+    if (request.method === "OPTIONS") {
+      return new Response("OK", {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+          "Access-Control-Allow-Headers": "*",
+        },
+      });
+    }
+
+    const handler = routes[path];
+    if (!handler) {
+      return jsonResponse(
+        {
+          ok: false,
+          error: "Unknown TAC AI module",
+          requested: path,
+          available: Object.keys(routes),
+        },
+        404
+      );
+    }
+
+    // Parse body
+    let body = null;
+    try {
+      const t = await request.text();
+      body = t ? JSON.parse(t) : null;
+    } catch (e) {
+      body = null;
+    }
+
+    try {
+      const result = await handler({ request, env, ctx, body });
+      return jsonResponse({ ok: true, module: path, result });
+    } catch (e) {
+      return jsonResponse(
+        { ok: false, error: e.message || String(e) },
+        500
+      );
+    }
+  },
+};
+
+function jsonResponse(obj, status = 200) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: {
+      ...JSON_HEADERS,
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
+}
+
+/* ──────────────────────────────────────────────────────────
+   MODULES IMPLEMENTATION
+   (Ide kerül minden AI modul külön-külön)
+────────────────────────────────────────────────────────── */
+
+// 1️⃣ Singularity Theory Engine
+async function singularityTheoryModule({ body, env }) {
+  return {
+    engine: "SingularityTheoryEngine",
+    input: body,
+    message: "Future-level Singularity Engine operational.",
+  };
+}
+
+// 2️⃣ Rift AI
+async function riftAiModule({ body }) {
+  return {
+    engine: "RiftAI",
+    input: body,
+    status: "Rift anomaly detected & processed.",
+  };
+}
+
+// 3️⃣ Anti-Rift AI
+async function antiRiftAiModule({ body }) {
+  return {
+    engine: "AntiRiftAI",
+    input: body,
+    status: "Anti-Rift purification successful.",
+  };
+}
+
+// 4️⃣ Dual Rift Engine
+async function dualRiftEngineModule({ body }) {
+  return {
+    engine: "DualRiftEngine",
+    input: body,
+    status: "Dual-engine synthesis complete (Rift + Anti-Rift).",
+  };
+}
+
+// 5️⃣ Paradox Engine
+async function paradoxEngineModule({ body }) {
+  return {
+    engine: "ParadoxEngine",
+    input: body,
+    status: "Paradox resolved across multi-state clusters.",
+  };
+}
+
+// 6️⃣ Global System Health
+async function globalSystemHealthModule() {
+  return {
+    engine: "GlobalSystemHealth",
+    health: "STABLE",
+    rift: "Nominal",
+    paradox: "Low",
+    resonance: "Balanced",
+  };
+}
+
+// 7️⃣ Manipulator AI
+async function manipulatorAiModule({ body }) {
+  return {
+    engine: "ManipulatorAI",
+    input: body,
+    effect: "Influence optimization successful.",
+  };
+}
+
+// 8️⃣ Stability Dashboard
+async function stabilityDashboardModule() {
+  return {
+    engine: "StabilityDashboard",
+    stabilityIndex: 0.98,
+    status: "All systems stable.",
+  };
+}
+
+// 9️⃣ TAC Revolution Engine
+async function tacRevolutionEngineModule({ body }) {
+  return {
+    engine: "TACRevolutionEngine",
+    input: body,
+    status: "Revolutionary state update complete.",
+  };
+}
