@@ -1,0 +1,174 @@
+#!/usr/bin/env node
+/**
+ * GITHUB WORKFLOW DOCTOR – ONE COMPLEX CODE
+ * Mobile-first debug + auto-fix engine
+ * Author: ChatGPT x K.B.
+ */
+
+import fs from "fs";
+import path from "path";
+import readline from "readline";
+import { execSync } from "child_process";
+import fetch from "node-fetch";
+
+// ----------- MOBILE-FIRST TERMINAL UI (iOS-friendly) -----------
+const ui = {
+  line: () => console.log("────────────────────────────────────────────"),
+  title: (t) => console.log(`\n📦 ${t}\n`),
+  success: (t) => console.log(`✅ ${t}`),
+  error: (t) => console.log(`❌ ${t}`),
+  info: (t) => console.log(`ℹ️  ${t}`),
+  action: (t) => console.log(`⚙️  ${t}`),
+  warn: (t) => console.log(`🚧 ${t}`)
+};
+
+// ----------- SETTINGS -----------
+const CONFIG = {
+  repo: "",
+  token: "",
+  tempFolder: "workflow_debug_temp",
+  autoFix: true
+};
+
+// ----------- INPUT PROMPT -----------
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+function ask(q) {
+  return new Promise((res) => rl.question(q, res));
+}
+
+// ----------- CLONE REPO -----------
+async function cloneRepo() {
+  ui.title("Cloning Repository…");
+
+  if (fs.existsSync(CONFIG.tempFolder)) {
+    ui.warn("Temp folder exists — deleting…");
+    fs.rmSync(CONFIG.tempFolder, { recursive: true });
+  }
+
+  execSync(`git clone https://github.com/${CONFIG.repo}.git ${CONFIG.tempFolder}`, {
+    stdio: "inherit"
+  });
+
+  ui.success("Repository cloned successfully.");
+}
+
+// ----------- WORKFLOW SCAN -----------
+function scanWorkflows() {
+  ui.title("Scanning workflow files…");
+
+  const workflowsPath = path.join(CONFIG.tempFolder, ".github", "workflows");
+
+  if (!fs.existsSync(workflowsPath)) {
+    ui.error("No workflow directory found!");
+    return [];
+  }
+
+  const files = fs.readdirSync(workflowsPath).filter(f => f.endsWith(".yml") || f.endsWith(".yaml"));
+  ui.info(`Found ${files.length} workflow file(s).`);
+
+  return files.map(f => ({
+    name: f,
+    path: path.join(workflowsPath, f),
+    content: fs.readFileSync(path.join(workflowsPath, f), "utf-8")
+  }));
+}
+
+// ----------- DEBUG RULES -----------
+function runDebugRules(content) {
+  const issues = [];
+  const fixes = [];
+
+  // Rule 1: Missing permissions block
+  if (!content.includes("permissions:")) {
+    issues.push("Missing permissions block");
+    fixes.push("Added default permissions");
+    content = "permissions:\n  contents: write\n\n" + content;
+  }
+
+  // Rule 2: Using ubuntu-latest without version pin
+  if (content.includes("ubuntu-latest")) {
+    issues.push("ubuntu-latest detected (risky)");
+    content = content.replace("ubuntu-latest", "ubuntu-24.04");
+    fixes.push("Pinned ubuntu version to 24.04");
+  }
+
+  // Rule 3: Missing checkout@v3
+  if (!content.includes("actions/checkout@v3")) {
+    issues.push("Missing actions/checkout@v3");
+    fixes.push("Added checkout@v3");
+    content = content.replace("steps:", "steps:\n      - uses: actions/checkout@v3");
+  }
+
+  // Rule 4: Invalid indentation
+  if (content.includes("\t")) {
+    issues.push("Tab characters detected");
+    content = content.replace(/\t/g, "  ");
+    fixes.push("Replaced tabs with spaces");
+  }
+
+  return { content, issues, fixes };
+}
+
+// ----------- PROCESS WORKFLOWS -----------
+function fixWorkflows(workflows) {
+  ui.title("Processing workflows…");
+
+  workflows.forEach(file => {
+    ui.action(`Checking ${file.name}…`);
+    const { content, issues, fixes } = runDebugRules(file.content);
+
+    if (issues.length === 0) {
+      ui.success(`${file.name} OK – No issues found.`);
+      return;
+    }
+
+    ui.warn(`Issues in ${file.name}: ${issues.join(", ")}`);
+
+    if (CONFIG.autoFix) {
+      fs.writeFileSync(file.path, content);
+      ui.success(`Auto-fix applied (${fixes.length} changes).`);
+    }
+  });
+}
+
+// ----------- COMMIT & PUSH -----------
+function gitPush() {
+  ui.title("Pushing fixes back to GitHub…");
+
+  execSync(`cd ${CONFIG.tempFolder} && git add .`, { stdio: "inherit" });
+  execSync(`cd ${CONFIG.tempFolder} && git commit -m "Workflow Doctor – auto fixes"`, {
+    stdio: "inherit"
+  });
+
+  execSync(`cd ${CONFIG.tempFolder} && git push`, { stdio: "inherit" });
+
+  ui.success("All fixes pushed successfully.");
+}
+
+// ----------- MAIN EXECUTION -----------
+(async () => {
+  ui.title("GitHub Workflow Doctor – Mobile First Edition");
+
+  CONFIG.repo = await ask("🔧 GitHub repo (format: username/repo): ");
+  CONFIG.token = await ask("🔑 GitHub token: ");
+  console.log("");
+
+  rl.close();
+
+  try {
+    await cloneRepo();
+
+    const files = scanWorkflows();
+    fixWorkflows(files);
+    gitPush();
+
+    ui.title("✨ DONE – Your GitHub repo is now clean, optimized and fixed!");
+  } catch (err) {
+    ui.error("Fatal Error:");
+    console.log(err);
+  }
+})();
