@@ -1,7 +1,7 @@
 name = "tac-orchestrator-worker"  # ez lehet a modulok összegző neve is
 main = "src/worker.js"
 compatibility_date = "2024-09-01"
-account_id = "IDE_ÍRD_A_CLOUDFLARE_ACCOUNT_ID-T"
+account_id = "78039e8d47685cac3bcd449127cee221"
 workers_dev = true
 
 [vars]
