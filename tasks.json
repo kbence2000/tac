@@ -1,0 +1,32 @@
+{
+  "$schema": "https://codesandbox.io/schemas/tasks.json",
+  "setupTasks": [
+    {
+      "name": "Install Dependencies",
+      "command": "npm install"
+    }
+  ],
+  "tasks": {
+    "dev-app": {
+      "name": "Dev App",
+      "command": "npm run dev",
+      "runAtStart": true,
+      "preview": {
+        "port": 3000,
+        "prLink": "direct"
+      }
+    },
+    "dev-cloudflare-worker": {
+      "name": "Cloudflare Worker (wrangler dev)",
+      "command": "cd cloudflare && npx wrangler dev --port 8787 --local"
+    },
+    "dev-frontend-pages": {
+      "name": "Frontend pages/",
+      "command": "cd pages && npm install --legacy-peer-deps && npm run dev",
+      "preview": {
+        "port": 5173,
+        "prLink": "direct"
+      }
+    }
+  }
+}

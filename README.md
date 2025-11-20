@@ -1,20 +1,24 @@
-# Base44 App
+# TAC High-End Dev Environment
 
+Ez a csomag egy **high-end GitHub + Cloudflare + CodeSandbox / Codespaces** fejlesztői környezet sablon.
+Másold be a fájlokat a saját repo-d gyökerébe, majd commit+push.
 
-This app was created automatically by Base44.
-It's a Vite+React app that communicates with the Base44 API.
+## Fő elemek
 
-## Running the app
+- `.devcontainer/` – VS Code Dev Containers / GitHub Codespaces / CodeSandbox
+- `.codesandbox/tasks.json` – CodeSandbox VM tasks
+- `.github/workflows/ci.yml` – Build + lint pipeline
+- `.github/workflows/lockfile-fix.yml` – *Automatikus lockfile-fixer* pipeline
 
-```bash
-npm install
-npm run dev
-```
+## Gyors használat
 
-## Building the app
+1. Másold be a mappákat a saját repo-dba.
+2. Locálisan vagy Codespaces-ben futtasd:
 
-```bash
-npm run build
-```
+   ```bash
+   npm install
+   ```
 
-For more information and support, please contact Base44 support at app@base44.com.
+   Ez frissíti a `package-lock.json`-t.
+3. Commit+push.
+4. A CI és a lockfile-fixer innentől automatikusan fut.

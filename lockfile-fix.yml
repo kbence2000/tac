@@ -1,0 +1,40 @@
+name: Lockfile Fixer
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  fix-lockfile:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Regenerate lockfile with npm install
+        run: |
+          npm install
+          echo "Lockfile regenerated (if necessary)."
+
+      - name: Commit lockfile changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "chore: auto-fix npm lockfile"
+          file_pattern: |
+            package-lock.json
+            **/package-lock.json

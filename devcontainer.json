@@ -1,0 +1,35 @@
+{
+  "name": "High-End Cloudflare Dev Environment",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "dockerFile": "Dockerfile",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [3000, 8787, 5173],
+  "postCreateCommand": "npm install --legacy-peer-deps || true",
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash",
+    "editor.formatOnSave": true,
+    "files.eol": "\n"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "github.copilot",
+        "github.copilot-chat",
+        "codeium.codeium",
+        "cloudflare.cloudflare-vscode",
+        "streetsidesoftware.code-spell-checker"
+      ]
+    }
+  },
+  "remoteUser": "root"
+}
