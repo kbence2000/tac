@@ -1,0 +1,271 @@
+// app.js
+// Egy „mini Base44” backend: GitHub + ChatGPT egy appban
+// Indítás: node app.js
+// Előtte: npm install express axios dotenv openai
+
+import express from "express";
+import axios from "axios";
+import dotenv from "dotenv";
+import OpenAI from "openai";
+
+dotenv.config();
+
+const app = express();
+app.use(express.json({ limit: "10mb" }));
+
+const PORT = process.env.PORT || 3000;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+if (!GITHUB_TOKEN || !OPENAI_API_KEY) {
+  console.error("❌ GITHUB_TOKEN vagy OPENAI_API_KEY hiányzik a .env-ből!");
+  process.exit(1);
+}
+
+// OpenAI kliens (ChatGPT)
+const openai = new OpenAI({
+  apiKey: OPENAI_API_KEY,
+});
+
+// GitHub API kliens (alap axios wrapper)
+const github = axios.create({
+  baseURL: "https://api.github.com",
+  headers: {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    "User-Agent": "tac-dev-hub",
+    Accept: "application/vnd.github+json",
+  },
+});
+
+/**
+ * Helper: Repo tree beolvasása (max depth 2, hogy ne legyen brutál nagy)
+ */
+async function getRepoTree(owner, repo, branch = "main") {
+  // 1) branch SHA
+  const refRes = await github.get(`/repos/${owner}/${repo}/git/refs/heads/${branch}`);
+  const commitSha = refRes.data.object.sha;
+
+  // 2) tree lekérés
+  const treeRes = await github.get(
+    `/repos/${owner}/${repo}/git/trees/${commitSha}?recursive=1`
+  );
+
+  return treeRes.data.tree; // [{path, type, sha, ...}]
+}
+
+/**
+ * Helper: fájl tartalom lekérése
+ */
+async function getFileContent(owner, repo, path, branch = "main") {
+  const res = await github.get(`/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
+    params: { ref: branch },
+  });
+
+  if (res.data.encoding === "base64") {
+    const buff = Buffer.from(res.data.content, "base64");
+    return buff.toString("utf8");
+  }
+  return res.data.content;
+}
+
+/**
+ * 1) Repo fájlok listázása – workflow debug alap
+ * POST /api/github/list-files
+ * body: { owner, repo, branch? }
+ */
+app.post("/api/github/list-files", async (req, res) => {
+  try {
+    const { owner, repo, branch = "main" } = req.body;
+
+    if (!owner || !repo) {
+      return res.status(400).json({ error: "owner és repo kötelező" });
+    }
+
+    const tree = await getRepoTree(owner, repo, branch);
+
+    // csak fájlok, max 100 elem, hogy ne haljunk meg
+    const files = tree
+      .filter((t) => t.type === "blob")
+      .map((f) => f.path)
+      .slice(0, 100);
+
+    res.json({ files, count: files.length });
+  } catch (err) {
+    console.error("list-files error:", err.response?.data || err.message);
+    res.status(500).json({ error: "Nem sikerült listázni a fájlokat." });
+  }
+});
+
+/**
+ * 2) Konkrét fájl tartalom lekérése
+ * POST /api/github/get-file
+ * body: { owner, repo, path, branch? }
+ */
+app.post("/api/github/get-file", async (req, res) => {
+  try {
+    const { owner, repo, path, branch = "main" } = req.body;
+    if (!owner || !repo || !path) {
+      return res.status(400).json({ error: "owner, repo, path kötelező" });
+    }
+
+    const content = await getFileContent(owner, repo, path, branch);
+    res.json({ path, content });
+  } catch (err) {
+    console.error("get-file error:", err.response?.data || err.message);
+    res.status(500).json({ error: "Nem sikerült beolvasni a fájlt." });
+  }
+});
+
+/**
+ * 3) Debug endpoint – error log + repo -> ChatGPT magyarázat + fix ötlet
+ * POST /api/debug/error
+ * body: { owner, repo, branch?, errorLog, focusPaths? }
+ *
+ * focusPaths: opcionális listája a fájloknak, amiket érdemes belerakni a promptba
+ */
+app.post("/api/debug/error", async (req, res) => {
+  try {
+    const { owner, repo, branch = "main", errorLog, focusPaths = [] } = req.body;
+
+    if (!owner || !repo || !errorLog) {
+      return res.status(400).json({
+        error: "owner, repo és errorLog kötelező a debug endpointhez.",
+      });
+    }
+
+    // Ha van megadott fájllista, beolvassuk őket és bepakoljuk a promptba
+    let filesSnippet = "";
+    for (const p of focusPaths.slice(0, 5)) {
+      try {
+        const content = await getFileContent(owner, repo, p, branch);
+        // limitáljuk a fájl méretet
+        const short = content.length > 5000 ? content.slice(0, 5000) + "\n// ...cut..." : content;
+        filesSnippet += `\n\n===== FILE: ${p} =====\n${short}`;
+      } catch (e) {
+        filesSnippet += `\n\n===== FILE: ${p} =====\n// Nem sikerült beolvasni ezt a fájlt.`;
+      }
+    }
+
+    const systemPrompt = `
+Te egy senior DevOps + backend fejlesztő vagy, aki GitHub workflow hibákat elemez.
+Magyarázd el a hibát, majd adj konkrét lépéseket és kód/jobb konfigurációs javaslatot.
+Ha lehet, adj diff-szerű patch-et is (git diff formátum).
+`   .trim();
+
+    const userPrompt = `
+Ez egy GitHub repo (owner: ${owner}, repo: ${repo}, branch: ${branch}).
+Itt az error log (build/test/workflow hibából):
+
+----- ERROR LOG START -----
+${errorLog}
+----- ERROR LOG END -----
+
+Ezek a releváns forrásfájlok részletei:
+${filesSnippet}
+
+Kérlek:
+1. Magyarázd el, mi lehet a hiba oka.
+2. Írd le, mit kell javítani (lépésről lépésre).
+3. Adj konkrét kód- vagy config módosítás javaslatot.
+4. Ha lehet, készíts git diff patch-et is.
+`.trim();
+
+    const completion = await openai.responses.create({
+      model: "gpt-4.1-mini",
+      input: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      max_output_tokens: 1000,
+    });
+
+    const aiText =
+      completion.output[0].content
+        .map((chunk) => ("text" in chunk ? chunk.text : ""))
+        .join("\n") || "Nincs válasz.";
+
+    res.json({
+      explanation: aiText,
+    });
+  } catch (err) {
+    console.error("debug/error endpoint error:", err.response?.data || err.message);
+    res.status(500).json({
+      error: "Nem sikerült a debug elemzés ChatGPT-vel.",
+    });
+  }
+});
+
+/**
+ * 4) Fájl refaktor / fix ChatGPT-vel
+ * POST /api/refactor/file
+ * body: { owner, repo, path, branch?, instructions }
+ */
+app.post("/api/refactor/file", async (req, res) => {
+  try {
+    const { owner, repo, path, branch = "main", instructions } = req.body;
+
+    if (!owner || !repo || !path || !instructions) {
+      return res.status(400).json({
+        error: "owner, repo, path, instructions kötelező.",
+      });
+    }
+
+    const originalContent = await getFileContent(owner, repo, path, branch);
+
+    const systemPrompt = `
+Te egy senior fullstack fejlesztő vagy.
+Egy meglévő fájlt fogsz módosítani a megadott utasítások alapján.
+Fontos: tartsd meg a projekt stílusát, ne törj össze semmit.
+Visszatérés: CSAK a módosított teljes fájl tartalma, extra kommentár nélkül.
+`.trim();
+
+    const userPrompt = `
+Utasítások a módosításhoz:
+${instructions}
+
+Eredeti fájl (${path}) tartalma:
+-------------------------------
+${originalContent}
+-------------------------------
+
+Kérlek, add vissza a teljes módosított fájl tartalmát.
+`.trim();
+
+    const completion = await openai.responses.create({
+      model: "gpt-4.1",
+      input: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      max_output_tokens: 2000,
+    });
+
+    const newFileContent =
+      completion.output[0].content
+        .map((chunk) => ("text" in chunk ? chunk.text : ""))
+        .join("\n") || "";
+
+    res.json({
+      path,
+      originalContent,
+      newFileContent,
+      note: "Ezt a newFileContent-et te tudod commitolni/pusholni GitHubra (külön script vagy manuálisan).",
+    });
+  } catch (err) {
+    console.error("refactor/file endpoint error:", err.response?.data || err.message);
+    res.status(500).json({
+      error: "Nem sikerült a fájl refaktor ChatGPT-vel.",
+    });
+  }
+});
+
+/**
+ * Health check – mint egy mini Base44 „status”
+ */
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", github: !!GITHUB_TOKEN, openai: !!OPENAI_API_KEY });
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Mini Base44-szerű backend fut: http://localhost:${PORT}`);
+});
