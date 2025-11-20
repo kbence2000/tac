@@ -1,0 +1,129 @@
+{
+  "name": "AntiN8NAnalysis",
+  "type": "object",
+  "properties": {
+    "workflowId": {
+      "type": "string",
+      "description": "n8n workflow identifier"
+    },
+    "workflowName": {
+      "type": "string",
+      "description": "n8n workflow name"
+    },
+    "stats": {
+      "type": "object",
+      "description": "Run statistics from n8n",
+      "properties": {
+        "total": {
+          "type": "number"
+        },
+        "successRate": {
+          "type": "number"
+        },
+        "avgDurationMs": {
+          "type": "number"
+        },
+        "errorRate": {
+          "type": "number"
+        },
+        "recentErrors": {
+          "type": "array"
+        }
+      }
+    },
+    "antiPlan": {
+      "type": "object",
+      "description": "Generated anti-n8n strategy",
+      "properties": {
+        "meta": {
+          "type": "object",
+          "properties": {
+            "highLatency": {
+              "type": "boolean"
+            },
+            "unstable": {
+              "type": "boolean"
+            },
+            "underused": {
+              "type": "boolean"
+            }
+          }
+        },
+        "antiNodes": {
+          "type": "array"
+        },
+        "altBranches": {
+          "type": "array"
+        },
+        "strategies": {
+          "type": "array"
+        }
+      }
+    },
+    "narrative": {
+      "type": "object",
+      "description": "AI-generated narrative explanation",
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "riskLevel": {
+          "type": "string"
+        },
+        "whenToUseAnti": {
+          "type": "array"
+        },
+        "adviceToFounder": {
+          "type": "string"
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "description": "Comparison audit between n8n and anti-n8n",
+      "properties": {
+        "riskScore": {
+          "type": "number"
+        },
+        "antiPotential": {
+          "type": "number"
+        },
+        "suggestion": {
+          "type": "string"
+        }
+      }
+    },
+    "n8nResult": {
+      "type": "object",
+      "description": "Specific n8n execution result compared"
+    },
+    "analysisType": {
+      "type": "string",
+      "enum": [
+        "evaluate",
+        "compare",
+        "full"
+      ],
+      "default": "evaluate",
+      "description": "Type of analysis performed"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed"
+      ],
+      "default": "completed",
+      "description": "Analysis status"
+    },
+    "recommendAnti": {
+      "type": "boolean",
+      "default": false,
+      "description": "Should use anti-n8n instead of n8n"
+    }
+  },
+  "required": [
+    "workflowId"
+  ]
+}
