@@ -1,3 +1,11 @@
-name = "tac-engine"
-main = "src/index.js"
-compatibility_date = "2024-11-22"
+name = "tac-orchestrator-worker"  # ez lehet a modulok összegző neve is
+main = "src/worker.js"
+compatibility_date = "2024-09-01"
+account_id = "IDE_ÍRD_A_CLOUDFLARE_ACCOUNT_ID-T"
+workers_dev = true
+
+[vars]
+# ide tehetsz fix env változókat, ha akarsz (nem a secret kulcsot)
+
+# OpenAI kulcs secretként:
+# futtasd majd: wrangler secret put OPENAI_API_KEY
