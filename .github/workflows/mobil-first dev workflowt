@@ -1,0 +1,168 @@
+name: Mobile-First Dev Workflow
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  mobile-first-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Repo lehúzása
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) Node + cache
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # 3) Dependenciák telepítése
+      # Ha már van package-lock, akkor npm ci, különben npm install
+      - name: Install dependencies (smart)
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "package-lock.json found -> npm ci"
+            npm ci
+          else
+            echo "No package-lock.json -> npm install"
+            npm install
+          fi
+
+      # 4) Lint (JS/TS + CSS) – mobile-first fókusz
+      - name: Lint code (JS/TS + CSS)
+        run: |
+          # JS/TS lint (eslint) ha van
+          if npm run | grep -q "lint"; then
+            echo "Running npm run lint"
+            npm run lint
+          else
+            echo "No 'lint' script, skipping JS/TS lint."
+          fi
+
+          # CSS/Style lint (pl. stylelint / tailwind) ha van
+          if npm run | grep -q "lint:css"; then
+            echo "Running npm run lint:css"
+            npm run lint:css
+          elif npm run | grep -q "lint:styles"; then
+            echo "Running npm run lint:styles"
+            npm run lint:styles
+          else
+            echo "No CSS lint script, skipping CSS lint."
+          fi
+
+      # 5) Mobil-first build ellenőrzés (responsive build)
+      - name: Build app
+        run: |
+          if npm run | grep -q "build"; then
+            echo "Running npm run build"
+            npm run build
+          else
+            echo "No 'build' script, skipping build."
+          fi
+
+      # 6) Mobil-fókuszú tesztek (Playwright / Cypress / Jest stb. ha van)
+      - name: Run tests (unit/e2e/mobile)
+        run: |
+          if npm run | grep -q "test:ci"; then
+            echo "Running npm run test:ci"
+            npm run test:ci
+          elif npm run | grep -q "test"; then
+            echo "Running npm run test"
+            npm run test -- --watch=false || npm run test
+          else
+            echo "No test script, skipping tests."
+          fi
+
+          # Speciális mobil tesztek – ha definiálod majd a package.json-ben
+          if npm run | grep -q "test:mobile"; then
+            echo "Running npm run test:mobile"
+            npm run test:mobile
+          else
+            echo "No mobile specific test script, skipping."
+          fi
+
+      # 7) Opcionális Lighthouse mobil audit (ha beállítod a scriptet)
+      - name: Mobile Lighthouse audit (optional)
+        if: ${{ always() }}
+        run: |
+          if npm run | grep -q "lighthouse:mobile"; then
+            echo "Running npm run lighthouse:mobile"
+            npm run lighthouse:mobile
+          else
+            echo "No 'lighthouse:mobile' script, skipping Lighthouse."
+          fi
+
+      # 8) Cloudflare Pages / Worker deploy (mobil-first prod környezet)
+      # -> csak akkor fut, ha beállítod a secret-eket GitHubon
+      - name: Deploy to Cloudflare
+        if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "Cloudflare secrets not set, skipping deploy."
+            exit 0
+          fi
+
+          # Pages deploy – ha van Wrangler config és pages projekt
+          if [ -f wrangler.toml ]; then
+            echo "Attempting Cloudflare deploy via Wrangler..."
+            npx wrangler --version
+            # Pages
+            if npm run | grep -q "pages:deploy"; then
+              echo "Running npm run pages:deploy"
+              npm run pages:deploy
+            else
+              echo "Default wrangler pages deploy"
+              npx wrangler pages deploy dist || echo 'No dist/ or pages config, skipping pages deploy.'
+            fi
+
+            # Worker (API / backend) deploy – ha kell
+            if npm run | grep -q "worker:deploy"; then
+              echo "Running npm run worker:deploy"
+              npm run worker:deploy
+            else
+              echo "No worker deploy script, skipping worker deploy."
+            fi
+          else
+            echo "No wrangler.toml found, skipping Cloudflare deploy."
+          fi
+
+  # + Opcionális job: Lockfile auto-fix (ha szeretnéd egy workflow-ban tartani)
+  lockfile-fix:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Regenerate lockfile
+        run: |
+          npm install
+          echo "Lockfile regenerated (if needed)."
+
+      - name: Commit lockfile changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "chore: auto-fix npm lockfile (mobile-first workflow)"
+          file_pattern: |
+            package-lock.json
+            **/package-lock.json
