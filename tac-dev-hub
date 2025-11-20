@@ -1,0 +1,4 @@
+mkdir tac-dev-hub
+cd tac-dev-hub
+npm init -y
+npm install express axios dotenv openai
