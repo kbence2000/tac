@@ -1,0 +1,27 @@
+// JavaScript Example: Reading Entities
+// Filterable fields: name, module_name, status, progress, epochs, current_epoch, loss, accuracy, started_at, completed_at, dataset, hyperparameters
+async function fetchTrainingSessionEntities() {
+    const response = await fetch(`https://app.base44.com/api/apps/691f52903c699af7047b818f/entities/TrainingSession`, {
+        headers: {
+            'api_key': '7eef83b9870f4bff9d102dcd41c979e1', // or use await User.me() to get the API key
+            'Content-Type': 'application/json'
+        }
+    });
+    const data = await response.json();
+    console.log(data);
+}
+
+// JavaScript Example: Updating an Entity
+// Filterable fields: name, module_name, status, progress, epochs, current_epoch, loss, accuracy, started_at, completed_at, dataset, hyperparameters
+async function updateTrainingSessionEntity(entityId, updateData) {
+    const response = await fetch(`https://app.base44.com/api/apps/691f52903c699af7047b818f/entities/TrainingSession/${entityId}`, {
+        method: 'PUT',
+        headers: {
+            'api_key': '7eef83b9870f4bff9d102dcd41c979e1', // or use await User.me() to get the API key
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updateData)
+    });
+    const data = await response.json();
+    console.log(data);
+}
