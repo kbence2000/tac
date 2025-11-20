@@ -1,0 +1,155 @@
+LAYOUT
+Layout.js
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from './utils';
+import MatrixBackground from './components/layout/MatrixBackground';
+import ProfileMenu from './components/layout/ProfileMenu';
+import {
+  LayoutDashboard,
+  Activity,
+  Cpu,
+  Zap,
+  GraduationCap,
+  Code2,
+  Terminal,
+  Circle,
+  Menu,
+  X,
+  Shield,
+  Bug,
+  Sparkles
+} from 'lucide-react';
+
+const navigation = [
+  { name: 'Home', path: 'Dashboard', icon: LayoutDashboard },
+  { name: 'AI Modules', path: 'AIModules', icon: Cpu },
+  { name: 'Live Monitoring', path: 'Monitoring', icon: Activity },
+  { name: 'Automation', path: 'Automation', icon: Zap },
+  { name: 'Training Lab', path: 'TrainingLab', icon: GraduationCap },
+  { name: 'Code Lab', path: 'CodeLab', icon: Code2 },
+  { name: 'Dev Environment', path: 'DevEnvironment', icon: Terminal },
+  { name: 'Security Shield', path: 'SecurityShield', icon: Shield },
+  { name: 'Remote Debugger', path: 'RemoteDebugger', icon: Bug },
+  { name: 'AI Console', path: 'AIConsole', icon: Sparkles },
+  { name: 'Code Generator', path: 'CodeGenerator', icon: Code2 },
+];
+
+export default function Layout({ children, currentPageName }) {
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+    // Auto-open sidebar on desktop
+    if (window.innerWidth >= 1024) {
+      setSidebarOpen(true);
+    }
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 relative overflow-x-hidden">{mounted && <MatrixBackground />}
+
+
+      {/* Overlay for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`fixed top-0 left-0 z-40 h-screen transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} bg-slate-900/95 backdrop-blur-xl border-r border-indigo-500/20 w-[280px] lg:w-[280px]`}>
+        <div className="h-full px-4 py-6 overflow-y-auto">
+          {/* Logo */}
+          <div className="flex items-center gap-3 mb-8 px-3">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                <Cpu className="w-6 h-6 text-white" />
+              </div>
+              <Circle className="absolute -top-1 -right-1 w-3 h-3 text-cyan-400 fill-cyan-400 pulse-dot" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-black glow-text bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tighter leading-none">
+                ASA
+              </h1>
+              <p className="text-[9px] md:text-[10px] text-slate-500 font-medium tracking-wide">ALMIGHTY SYSTEM ARMY</p>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <nav className="space-y-1">
+            {navigation.map((item) => {
+              const isActive = currentPageName === item.path;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={createPageUrl(item.path)}
+                  className={`nav-glow ${isActive ? 'active' : ''} flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all`}
+                >
+                  <Icon className={`w-4 h-4 md:w-5 md:h-5 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
+                  <span className={`text-sm md:text-base font-medium ${isActive ? 'text-white' : 'text-slate-300'}`}>{item.name}</span>
+                  {isActive && (
+                    <Circle className="ml-auto w-2 h-2 text-indigo-400 fill-indigo-400 pulse-dot" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* System Status */}
+          <div className="mt-8 px-4 py-4 rounded-lg bg-slate-800/50 border border-indigo-500/20">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-slate-400">System Status</span>
+              <div className="flex items-center gap-1">
+                <Circle className="w-2 h-2 text-green-400 fill-green-400 pulse-dot" />
+                <span className="text-xs text-green-400">Operational</span>
+              </div>
+            </div>
+            <div className="space-y-2 mt-3">
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Active Modules</span>
+                <span className="text-indigo-400 font-mono">33</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Uptime</span>
+                <span className="text-purple-400 font-mono">99.9%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className={`transition-all duration-300 ${sidebarOpen ? 'lg:ml-[280px]' : 'ml-0'}`}>
+        {/* Top Bar */}
+        <header className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-xl border-b border-indigo-500/20 safe-area-top">
+          <div className="px-4 lg:px-6 py-3 lg:py-4 flex items-center justify-between">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 rounded-lg hover:bg-slate-800 transition-colors touch-feedback active:scale-95"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2 md:gap-4">
+              <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/50 border border-indigo-500/20">
+                <Circle className="w-2 h-2 text-cyan-400 fill-cyan-400 pulse-dot" />
+                <span className="text-sm text-slate-300">Live</span>
+              </div>
+              <ProfileMenu />
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="p-4 lg:p-6 grid-background min-h-[calc(100vh-73px)] relative z-10">
+          <div className="max-w-[2000px] mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
