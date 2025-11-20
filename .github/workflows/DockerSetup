@@ -1,0 +1,210 @@
+name: Auto Setup High-End Dev Environment
+
+on:
+  workflow_dispatch:   # kézzel indítható
+  push:
+    branches:
+      - main           # vagy ahová akarod
+
+jobs:
+  setup-env:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write    # fontos, hogy írni tudjon a repo-ba
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Create .devcontainer directory
+        run: |
+          mkdir -p .devcontainer
+
+      - name: Create devcontainer.json
+        run: |
+          cat > .devcontainer/devcontainer.json << 'EOF'
+          {
+            "name": "High-End Cloudflare Dev Environment",
+            "image": "mcr.microsoft.com/devcontainers/universal:2",
+            "dockerFile": "Dockerfile",
+            "workspaceFolder": "/workspace",
+            "forwardPorts": [3000, 8787, 5173],
+            "postCreateCommand": "npm install --legacy-peer-deps || true",
+            "settings": {
+              "terminal.integrated.shell.linux": "/bin/bash",
+              "editor.formatOnSave": true,
+              "files.eol": "\n"
+            },
+            "features": {
+              "ghcr.io/devcontainers/features/node:1": {
+                "version": "22"
+              },
+              "ghcr.io/devcontainers/features/git:1": {},
+              "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+            },
+            "customizations": {
+              "vscode": {
+                "extensions": [
+                  "ms-vscode.vscode-typescript-next",
+                  "dbaeumer.vscode-eslint",
+                  "esbenp.prettier-vscode",
+                  "github.copilot",
+                  "github.copilot-chat",
+                  "codeium.codeium",
+                  "cloudflare.cloudflare-vscode",
+                  "streetsidesoftware.code-spell-checker"
+                ]
+              }
+            },
+            "remoteUser": "root"
+          }
+          EOF
+
+      - name: Create Dockerfile
+        run: |
+          cat > .devcontainer/Dockerfile << 'EOF'
+          FROM mcr.microsoft.com/devcontainers/universal:2
+
+          RUN apt-get update && apt-get upgrade -y
+
+          RUN corepack disable || true \
+            && npm install -g npm@10 \
+            && npm install -g wrangler
+
+          RUN apt-get install -y git curl unzip build-essential
+
+          WORKDIR /workspace
+          EOF
+
+      - name: Create .codesandbox config
+        run: |
+          mkdir -p .codesandbox
+          cat > .codesandbox/tasks.json << 'EOF'
+          {
+            "$schema": "https://codesandbox.io/schemas/tasks.json",
+            "setupTasks": [
+              {
+                "name": "Install Dependencies",
+                "command": "npm install"
+              }
+            ],
+            "tasks": {
+              "dev-app": {
+                "name": "Dev App",
+                "command": "npm run dev",
+                "runAtStart": true,
+                "preview": {
+                  "port": 3000,
+                  "prLink": "direct"
+                }
+              },
+              "dev-cloudflare-worker": {
+                "name": "Cloudflare Worker",
+                "command": "cd cloudflare && npx wrangler dev --port 8787 --local"
+              },
+              "dev-frontend-pages": {
+                "name": "Frontend",
+                "command": "cd pages && npm install --legacy-peer-deps && npm run dev",
+                "preview": {
+                  "port": 5173,
+                  "prLink": "direct"
+                }
+              }
+            }
+          }
+          EOF
+
+      - name: Create CI workflow
+        run: |
+          mkdir -p .github/workflows
+          cat > .github/workflows/ci.yml << 'EOF'
+          name: CI
+
+          on:
+            push:
+            pull_request:
+
+          jobs:
+            build-and-test:
+              runs-on: ubuntu-latest
+
+              steps:
+                - uses: actions/checkout@v4
+
+                - uses: actions/setup-node@v4
+                  with:
+                    node-version: 22
+                    cache: npm
+
+                - name: Install
+                  run: npm ci
+
+                - name: Lint
+                  run: |
+                    if npm run | grep -q lint; then npm run lint; else echo "No lint script"; fi
+
+                - name: Build
+                  run: |
+                    if npm run | grep -q build; then npm run build; else echo "No build script"; fi
+          EOF
+
+      - name: Create Lockfile Fixer workflow
+        run: |
+          mkdir -p .github/workflows
+          cat > .github/workflows/lockfile-fix.yml << 'EOF'
+          name: Lockfile Fixer
+
+          on:
+            workflow_dispatch:
+            push:
+              branches:
+                - main
+                - master
+
+          jobs:
+            fix-lockfile:
+              runs-on: ubuntu-latest
+              permissions:
+                contents: write
+
+              steps:
+                - uses: actions/checkout@v4
+
+                - uses: actions/setup-node@v4
+                  with:
+                    node-version: 22
+                    cache: npm
+
+                - name: Regenerate lockfile
+                  run: npm install
+
+                - name: Commit lockfile changes
+                  uses: stefanzweifel/git-auto-commit-action@v7
+                  with:
+                    commit_message: "chore: auto-fix npm lockfile"
+                    file_pattern: |
+                      package-lock.json
+                      **/package-lock.json
+          EOF
+
+      - name: Create .gitignore
+        run: |
+          cat > .gitignore << 'EOF'
+          node_modules
+          dist
+          .cache
+          .vscode
+          .env
+          .env.local
+          EOF
+
+      - name: Auto Commit
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "🚀 Auto-setup: Full dev environment created"
+          file_pattern: |
+            .devcontainer/**
+            .codesandbox/**
+            .github/workflows/**
+            .gitignore
