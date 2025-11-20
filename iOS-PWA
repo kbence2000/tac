@@ -1,0 +1,12 @@
+/tac-v3
+ ├── wrangler.toml
+ ├── src/
+ │     └── worker.js          ← TAC v3 autonomous orchestrator + streaming
+ ├── public/
+ │     ├── index.html         ← PWA UI + streaming vizualizáció
+ │     ├── app.js             ← PWA streaming handler + orchestrator UI
+ │     ├── styles.css         ← PWA design
+ │     └── manifest.json      ← PWA telepíthetőség
+ └── .github/
+       └── workflows/
+             └── deploy.yml   ← Auto Cloudflare deploy
