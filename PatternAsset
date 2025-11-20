@@ -1,0 +1,76 @@
+{
+  "name": "PatternAsset",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Asset title"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Brief summary of what the code does"
+    },
+    "code": {
+      "type": "string",
+      "description": "The actual code"
+    },
+    "patterns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "when_to_use": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Detected code patterns"
+    },
+    "suggestions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Improvement suggestions"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for categorization"
+    },
+    "value": {
+      "type": "object",
+      "properties": {
+        "price_estimate": {
+          "type": "number"
+        },
+        "complexity": {
+          "type": "string"
+        },
+        "quality": {
+          "type": "string"
+        },
+        "score": {
+          "type": "number"
+        }
+      },
+      "description": "Value assessment data"
+    }
+  },
+  "required": [
+    "title",
+    "summary",
+    "code"
+  ]
+}
