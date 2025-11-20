@@ -1,0 +1,119 @@
+{
+  "name": "DualAutomation",
+  "type": "object",
+  "properties": {
+    "executionId": {
+      "type": "string",
+      "description": "Unique execution identifier"
+    },
+    "workflowId": {
+      "type": "string",
+      "description": "n8n workflow ID"
+    },
+    "workflowName": {
+      "type": "string",
+      "description": "n8n workflow name"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Input payload sent to workflow"
+    },
+    "n8nResult": {
+      "type": "object",
+      "description": "n8n execution result",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "execution": {
+          "type": "object"
+        },
+        "error": {
+          "type": "string"
+        },
+        "durationMs": {
+          "type": "number"
+        }
+      }
+    },
+    "antiPlan": {
+      "type": "object",
+      "description": "Anti-n8n shadow strategy",
+      "properties": {
+        "meta": {
+          "type": "object"
+        },
+        "antiNodes": {
+          "type": "array"
+        },
+        "altBranches": {
+          "type": "array"
+        },
+        "strategies": {
+          "type": "array"
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "description": "Comparison audit",
+      "properties": {
+        "riskScore": {
+          "type": "number"
+        },
+        "antiPotential": {
+          "type": "number"
+        },
+        "suggestion": {
+          "type": "string"
+        }
+      }
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "use_n8n_result",
+        "test_anti_n8n_path",
+        "fallback_to_anti"
+      ],
+      "description": "Final decision by orchestrator"
+    },
+    "executionTime": {
+      "type": "number",
+      "description": "Total execution time in milliseconds"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "failed",
+        "partial"
+      ],
+      "default": "completed",
+      "description": "Execution status"
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Performance metrics",
+      "properties": {
+        "n8nLatency": {
+          "type": "number"
+        },
+        "antiAnalysisLatency": {
+          "type": "number"
+        },
+        "auditLatency": {
+          "type": "number"
+        },
+        "decisionLatency": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "required": [
+    "executionId",
+    "workflowId",
+    "decision"
+  ]
+}
