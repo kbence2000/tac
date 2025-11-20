@@ -1,0 +1,405 @@
+GLOBALS.CSS
+globals.css
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-glow: rgba(99, 102, 241, 0.4);
+  --secondary-glow: rgba(139, 92, 246, 0.4);
+  --accent-glow: rgba(6, 182, 212, 0.4);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  body {
+    font-family: var(--font-sans);
+    font-size: clamp(14px, 1.5vw, 16px);
+    line-height: 1.6;
+  }
+  
+  /* 4K Optimization */
+  @media (min-width: 2560px) {
+    body {
+      font-size: 18px;
+    }
+    h1 {
+      font-size: 3.5rem;
+    }
+    h2 {
+      font-size: 2.5rem;
+    }
+    h3 {
+      font-size: 2rem;
+    }
+  }
+  
+  @media (min-width: 3840px) {
+    body {
+      font-size: 20px;
+    }
+    h1 {
+      font-size: 4.5rem;
+    }
+    h2 {
+      font-size: 3rem;
+    }
+    h3 {
+      font-size: 2.5rem;
+    }
+  }
+  
+  h1 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  
+  h2 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+  
+  h3 {
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+  }
+  
+  code, pre {
+    font-family: var(--font-mono);
+  }
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  overflow-x: hidden;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+/* Matrix Background Animation */
+@keyframes matrix-rain {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    opacity: 0.5; 
+    transform: scale(1) translateZ(0);
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.05) translateZ(0);
+  }
+}
+
+/* Hardware acceleration */
+.pulse-dot,
+.heartbeat,
+.nav-glow,
+.glow-text {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes grid-pulse {
+  0%, 100% {
+    opacity: 0.03;
+  }
+  50% {
+    opacity: 0.08;
+  }
+}
+
+@keyframes data-flow {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* 120fps Optimization */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* High refresh rate support */
+@supports (animation-timeline: scroll()) {
+  * {
+    animation-composition: accumulate;
+  }
+}
+
+/* Matrix background container */
+.matrix-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.matrix-line {
+  position: absolute;
+  top: -100%;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: rgba(99, 102, 241, 0.3);
+  white-space: nowrap;
+  animation: matrix-rain linear infinite;
+  text-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+}
+
+/* Grid background with pulse */
+.grid-background {
+  background-image: 
+    linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: grid-pulse 4s ease-in-out infinite;
+}
+
+/* Heartbeat indicators */
+.heartbeat {
+  animation: heartbeat 2s ease-in-out infinite;
+}
+
+.pulse-dot {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Data flow animation */
+.data-flow {
+  position: relative;
+  overflow: hidden;
+}
+
+.data-flow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.8), transparent);
+  animation: data-flow 3s linear infinite;
+}
+
+/* Glow effects */
+.glow-text {
+  text-shadow: 0 0 20px var(--primary-glow);
+}
+
+.glow-border {
+  box-shadow: 0 0 20px var(--primary-glow);
+}
+
+/* Nav glow */
+.nav-glow {
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.nav-glow:hover {
+  background: linear-gradient(to right, rgba(99, 102, 241, 0.1), transparent);
+  box-shadow: inset 4px 0 0 rgb(99, 102, 241);
+}
+
+.nav-glow.active {
+  background: linear-gradient(to right, rgba(99, 102, 241, 0.15), transparent);
+  box-shadow: inset 4px 0 0 rgb(99, 102, 241);
+}
+
+.nav-glow.active::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  background: rgb(99, 102, 241);
+  border-radius: 2px;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .matrix-line {
+    font-size: 10px;
+  }
+  
+  .grid-background {
+    background-size: 30px 30px;
+  }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  body {
+    min-height: -webkit-fill-available;
+  }
+  
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* PWA Optimizations */
+@media (display-mode: standalone) {
+  body {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  
+  .safe-area-top {
+    padding-top: max(env(safe-area-inset-top), 12px);
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar for mobile */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Loading states */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    #1e293b 0%,
+    #334155 50%,
+    #1e293b 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Touch feedback */
+.touch-feedback {
+  transition: transform 0.1s ease;
+}
+
+.touch-feedback:active {
+  transform: scale(0.95);
+}
+
+/* Status indicators with heartbeat */
+.status-active {
+  position: relative;
+}
+
+.status-active::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: inherit;
+  animation: heartbeat 2s ease-in-out infinite;
+  opacity: 0.3;
+  z-index: -1;
+}
