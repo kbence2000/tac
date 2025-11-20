@@ -1,0 +1,66 @@
+name: Codesandbox → GitHub → Cloudflare Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  lockfile_fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fix lockfile
+        run: |
+          rm -f package-lock.json || true
+          npm install --legacy-peer-deps || true
+
+      - name: Commit
+        run: |
+          git config user.email "bot@pipeline.dev"
+          git config user.name "Lockfile Bot"
+          git add package-lock.json
+          git commit -m "Auto-fix lockfile" || true
+          git push || true
+
+  cloudflare_pages:
+    runs-on: ubuntu-latest
+    needs: lockfile_fix
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build Pages
+        run: |
+          cd pages
+          npm install --legacy-peer-deps
+          npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          projectName: ${{ secrets.CF_PAGES_PROJECT }}
+          directory: pages/dist
+
+  cloudflare_workers:
+    runs-on: ubuntu-latest
+    needs: cloudflare_pages
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wrangler deploy
+        run: |
+          npm install -g wrangler
+          cd cloudflare
+          wrangler deploy
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
