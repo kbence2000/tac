@@ -1,20 +1,14 @@
-# The Almighty Collectives
+# TAC Project – Core Engines Pack
 
+Ez a csomag tartalmazza:
 
-This app was created automatically by Base44.
-It's a Vite+React app that communicates with the Base44 API.
+- SingularityTheoryEngine
+- RiftEngine (simple demo)
+- AntiRiftEngine
+- DualResonanceEngine
+- mainOrchestrator demo
 
-## Running the app
-
-```bash
-npm install
-npm run dev
-```
-
-## Building the app
-
-```bash
-npm run build
-```
-
-For more information and support, please contact Base44 support at app@base44.com.
+Használat:
+- Importáld a `backend/orchestrator/mainOrchestrator.js`-t,
+- hívd meg a `globalSystemHealthDemo()` függvényt,
+- az eredmény egy JSON snapshot a rendszer egészségéről.
