@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mobile UI Fix Dashboard</title>
+
+  <!-- Tailwind for instant mobile-first UI -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* Extra mobile fixes */
+    .phone-frame {
+      width: 390px;
+      height: 844px;
+      border: 14px solid #222;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(0,0,0,0.4);
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .file-box {
+      background: #111827;
+      border: 1px solid #374151;
+      padding: 10px;
+      border-radius: 8px;
+      color: #9CA3AF;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+
+  <header class="p-6 text-center bg-gray-800 text-xl font-bold shadow-lg">
+    📱 Mobile UI Fix & Live Preview (Auto Analyzer)
+  </header>
+
+  <main class="flex flex-col lg:flex-row gap-6 p-6">
+
+    <!-- LEFT PANEL -->
+    <div class="lg:w-1/2 bg-gray-800 rounded-xl p-6 shadow-xl">
+
+      <h2 class="text-2xl mb-4 font-semibold">Upload or Paste Your UI Files</h2>
+
+      <div class="space-y-4">
+        <textarea id="codeInput"
+          class="w-full h-64 bg-gray-900 border border-gray-700 rounded p-4 text-sm font-mono"
+          placeholder="Paste HTML/CSS/JS-snippet here..."></textarea>
+
+        <button onclick="generateFix()"
+          class="w-full bg-green-500 hover:bg-green-600 transition p-3 rounded font-bold">
+          🚀 Generate Mobile Fix
+        </button>
+      </div>
+
+      <h3 class="text-xl mt-6">Generated Mobile Fix Code:</h3>
+      <pre id="output" class="file-box mt-2"></pre>
+    </div>
+
+    <!-- RIGHT PANEL (LIVE PREVIEW) -->
+    <div class="lg:w-1/2 bg-gray-800 rounded-xl p-6 shadow-xl">
+      <h2 class="text-2xl font-semibold mb-4">Live Mobile Preview</h2>
+
+      <div class="flex justify-center">
+        <div class="phone-frame">
+          <iframe id="previewFrame"></iframe>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    function generateFix() {
+      const code = document.getElementById("codeInput").value;
+
+      // Mobile fixes applied automatically
+      const fixed = `
+<!-- AUTO MOBILE-FIXED VERSION -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+img, video {
+  width: 100%;
+  height: auto;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  font-size: 16px;
+}
+</style>
+
+${code}
+      `.trim();
+
+      // show fixed code
+      document.getElementById("output").textContent = fixed;
+
+      // load live preview
+      const iframe = document.getElementById("previewFrame");
+      const blob = new Blob([fixed], { type: "text/html" });
+      iframe.src = URL.createObjectURL(blob);
+    }
+  </script>
+
+</body>
+</html>
