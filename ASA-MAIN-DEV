@@ -1,0 +1,483 @@
+ENTITIES
+entities/AIModule.json
+{
+  "name": "AIModule",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the AI module"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "CORE_SUPERSTRUCTURES",
+        "HIGH_TIER_AI_ENTITIES",
+        "DEFENSE_SHIELD_SYSTEMS",
+        "MATHEMATICAL_SIGNAL_AIS",
+        "DEVELOPMENT_BOOSTERS",
+        "ORCHESTRATION_LAYER"
+      ],
+      "description": "Module category"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "training",
+        "error",
+        "standby"
+      ],
+      "default": "standby",
+      "description": "Current operational status"
+    },
+    "health": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 100,
+      "description": "Health percentage 0-100"
+    },
+    "cpu_usage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 0,
+      "description": "CPU usage percentage"
+    },
+    "memory_usage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 0,
+      "description": "Memory usage percentage"
+    },
+    "requests_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Total requests processed"
+    },
+    "success_rate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 100,
+      "description": "Success rate percentage"
+    },
+    "last_active": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last activity timestamp"
+    },
+    "description": {
+      "type": "string",
+      "description": "Module description"
+    },
+    "version": {
+      "type": "string",
+      "default": "1.0.0",
+      "description": "Module version"
+    },
+    "config": {
+      "type": "object",
+      "description": "Module configuration JSON"
+    }
+  },
+  "required": [
+    "name",
+    "category"
+  ]
+}
+entities/TrainingSession.json
+{
+  "name": "TrainingSession",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Training session name"
+    },
+    "module_name": {
+      "type": "string",
+      "description": "Target AI module"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "paused"
+      ],
+      "default": "pending",
+      "description": "Training status"
+    },
+    "progress": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 0,
+      "description": "Training progress percentage"
+    },
+    "epochs": {
+      "type": "number",
+      "description": "Total epochs"
+    },
+    "current_epoch": {
+      "type": "number",
+      "default": 0,
+      "description": "Current epoch"
+    },
+    "loss": {
+      "type": "number",
+      "description": "Current loss value"
+    },
+    "accuracy": {
+      "type": "number",
+      "description": "Current accuracy"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Start timestamp"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Completion timestamp"
+    },
+    "dataset": {
+      "type": "string",
+      "description": "Dataset used"
+    },
+    "hyperparameters": {
+      "type": "object",
+      "description": "Training hyperparameters"
+    }
+  },
+  "required": [
+    "name",
+    "module_name"
+  ]
+}
+entities/AutomationRule.json
+{
+  "name": "AutomationRule",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Automation rule name"
+    },
+    "trigger_type": {
+      "type": "string",
+      "enum": [
+        "schedule",
+        "threshold",
+        "event",
+        "manual"
+      ],
+      "description": "Type of trigger"
+    },
+    "trigger_config": {
+      "type": "object",
+      "description": "Trigger configuration"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "start_module",
+        "stop_module",
+        "restart_module",
+        "train",
+        "deploy",
+        "alert",
+        "execute_code"
+      ],
+      "description": "Action to perform"
+    },
+    "target_modules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Target module names"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Rule enabled status"
+    },
+    "last_triggered": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last trigger timestamp"
+    },
+    "execution_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times executed"
+    }
+  },
+  "required": [
+    "name",
+    "trigger_type",
+    "action_type"
+  ]
+}
+entities/CodeProject.json
+{
+  "name": "CodeProject",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Project name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "module",
+        "integration",
+        "experiment",
+        "prototype",
+        "production"
+      ],
+      "description": "Project type"
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "python",
+        "javascript",
+        "typescript",
+        "rust",
+        "cpp",
+        "other"
+      ],
+      "description": "Programming language"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "development",
+        "testing",
+        "deployed",
+        "archived"
+      ],
+      "default": "draft",
+      "description": "Project status"
+    },
+    "repository_url": {
+      "type": "string",
+      "description": "Git repository URL"
+    },
+    "description": {
+      "type": "string",
+      "description": "Project description"
+    },
+    "related_modules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Related AI modules"
+    },
+    "last_commit": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last commit timestamp"
+    },
+    "build_status": {
+      "type": "string",
+      "enum": [
+        "passing",
+        "failing",
+        "pending"
+      ],
+      "default": "pending",
+      "description": "Build status"
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ]
+}
+entities/SystemMetric.json
+{
+  "name": "SystemMetric",
+  "type": "object",
+  "properties": {
+    "metric_name": {
+      "type": "string",
+      "description": "Metric name"
+    },
+    "module_name": {
+      "type": "string",
+      "description": "Related module name"
+    },
+    "value": {
+      "type": "number",
+      "description": "Metric value"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unit of measurement"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Measurement timestamp"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "performance",
+        "usage",
+        "health",
+        "error",
+        "custom"
+      ],
+      "description": "Metric category"
+    }
+  },
+  "required": [
+    "metric_name",
+    "value"
+  ]
+}
+entities/CodeGeneration.json
+{
+  "name": "CodeGeneration",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Generation title"
+    },
+    "prompt": {
+      "type": "string",
+      "description": "User prompt for code generation"
+    },
+    "language": {
+      "type": "string",
+      "enum": ["python", "javascript", "typescript", "rust", "go", "java", "cpp", "csharp"],
+      "description": "Programming language"
+    },
+    "framework": {
+      "type": "string",
+      "description": "Framework or library"
+    },
+    "generated_code": {
+      "type": "string",
+      "description": "Generated code output"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "generating", "completed", "error", "reviewing"],
+      "default": "pending",
+      "description": "Generation status"
+    },
+    "quality_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Code quality score"
+    },
+    "suggestions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "AI suggestions for improvement"
+    },
+    "bugs_found": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Detected bugs"
+    },
+    "test_coverage": {
+      "type": "number",
+      "default": 0,
+      "description": "Test coverage percentage"
+    },
+    "complexity_score": {
+      "type": "number",
+      "description": "Code complexity metric"
+    },
+    "collaborators": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Active collaborators"
+    }
+  },
+  "required": ["title", "prompt", "language"]
+}
+entities/CICDPipeline.json
+{
+  "name": "CICDPipeline",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Pipeline name"
+    },
+    "project_name": {
+      "type": "string",
+      "description": "Associated project"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["idle", "running", "success", "failed", "cancelled"],
+      "default": "idle",
+      "description": "Pipeline status"
+    },
+    "stage": {
+      "type": "string",
+      "enum": ["build", "test", "deploy", "completed"],
+      "description": "Current stage"
+    },
+    "build_number": {
+      "type": "number",
+      "description": "Build number"
+    },
+    "duration": {
+      "type": "number",
+      "description": "Duration in seconds"
+    },
+    "coverage": {
+      "type": "number",
+      "description": "Test coverage"
+    },
+    "tests_passed": {
+      "type": "number",
+      "default": 0,
+      "description": "Passed tests"
+    },
+    "tests_failed": {
+      "type": "number",
+      "default": 0,
+      "description": "Failed tests"
+    },
+    "deploy_url": {
+      "type": "string",
+      "description": "Deployment URL"
+    },
+    "logs": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Pipeline logs"
+    }
+  },
+  "required": ["name", "project_name"]
+}
