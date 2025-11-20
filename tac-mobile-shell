@@ -1,0 +1,923 @@
+index.html
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+  <meta charset="UTF-8" />
+  <title>TAC Mobile Shell – iOS Ready PWA</title>
+
+  <!-- Mobil-first viewport -->
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+
+  <!-- iOS / PWA meta -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TAC Mobile" />
+
+  <!-- Theme color – JS-ben frissítjük (dark/light) -->
+  <meta name="theme-color" content="#050816" />
+
+  <!-- Alap apple-touch-icon; JS-ből felülírjuk a generált ikonnal is -->
+  <link
+    rel="apple-touch-icon"
+    id="appleTouchIcon"
+    href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9VPxXWoAAAAASUVORK5CYII="
+  />
+
+  <!-- Minimal CSS reset + mobil-first layout -->
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      color-scheme: light dark;
+      --color-bg-light: #f5f5f7;
+      --color-bg-dark: #050816;
+      --color-accent: #7c3aed; /* lila */
+      --color-accent-soft: rgba(124, 58, 237, 0.14);
+      --color-text-light: #111827;
+      --color-text-dark: #f9fafb;
+      --radius-xl: 1.25rem;
+      --radius-full: 999px;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.38);
+      --transition-fast: 200ms ease-out;
+      --transition-med: 320ms cubic-bezier(0.22, 0.61, 0.36, 1);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --gradient-accent: radial-gradient(circle at top left, #7c3aed, #0f172a);
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: var(--color-bg-dark);
+      color: var(--color-text-dark);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Theme handling */
+    html[data-theme="light"] body {
+      background: var(--color-bg-light);
+      color: var(--color-text-light);
+    }
+
+    html[data-theme="light"] .app-shell {
+      background: linear-gradient(
+        145deg,
+        #ffffff,
+        #e5e7eb,
+        #e0e7ff
+      );
+    }
+
+    html[data-theme="dark"] .app-shell {
+      background: radial-gradient(circle at top, #1f2937, #020617);
+    }
+
+    /* Fullscreen app container */
+    .app-root {
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding:
+        calc(8px + var(--safe-top))
+        12px
+        calc(16px + var(--safe-bottom));
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 480px;
+      border-radius: 32px;
+      padding: 16px 14px 12px;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      backdrop-filter: blur(22px);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    @media (min-width: 600px) {
+      .app-shell {
+        margin-top: 18px;
+      }
+    }
+
+    /* Top status / header */
+    .app-status-bar {
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.32);
+      color: #e5e7eb;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      backdrop-filter: blur(18px);
+    }
+
+    html[data-theme="light"] .pill {
+      background: rgba(255, 255, 255, 0.8);
+      color: #4b5563;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.21);
+    }
+
+    /* Main content */
+    .app-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .app-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .title-block h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+    }
+
+    .title-block p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      opacity: 0.78;
+    }
+
+    .theme-toggle {
+      border-radius: var(--radius-full);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      padding: 4px 8px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.6);
+      color: #e5e7eb;
+      cursor: pointer;
+      transition: transform var(--transition-fast), background var(--transition-fast),
+        border-color var(--transition-fast);
+    }
+
+    html[data-theme="light"] .theme-toggle {
+      background: rgba(255, 255, 255, 0.9);
+      color: #111827;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-1px);
+      border-color: var(--color-accent);
+    }
+
+    .theme-pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(135deg, #f97316, #facc15);
+    }
+
+    /* Cards grid */
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 380px) {
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      border-radius: var(--radius-xl);
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.82);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    html[data-theme="light"] .card {
+      background: rgba(255, 255, 255, 0.94);
+      border-color: rgba(148, 163, 184, 0.6);
+      box-shadow: 0 10px 24px rgba(148, 163, 184, 0.6);
+    }
+
+    .card-accent {
+      background: var(--gradient-accent);
+      border-color: rgba(129, 140, 248, 0.7);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0 0 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-sub {
+      font-size: 11px;
+      opacity: 0.8;
+      margin: 0 0 8px;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10px;
+      background: rgba(15, 23, 42, 0.8);
+      color: #e5e7eb;
+    }
+
+    html[data-theme="light"] .badge {
+      background: rgba(255, 255, 255, 0.85);
+      color: #111827;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: var(--radius-full);
+      border: 1px solid transparent;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--transition-med), transform var(--transition-fast),
+        box-shadow var(--transition-fast), border-color var(--transition-fast);
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: white;
+      box-shadow: 0 14px 32px rgba(79, 70, 229, 0.7);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px) scale(1.01);
+      box-shadow: 0 18px 40px rgba(79, 70, 229, 0.85);
+    }
+
+    .btn-ghost {
+      background: rgba(15, 23, 42, 0.6);
+      color: #e5e7eb;
+      border-color: rgba(148, 163, 184, 0.7);
+    }
+
+    html[data-theme="light"] .btn-ghost {
+      background: rgba(255, 255, 255, 0.9);
+      color: #111827;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--color-accent);
+      transform: translateY(-1px);
+    }
+
+    /* Icon generator */
+    .icon-preview-wrap {
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-preview {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+    }
+
+    .icon-preview img {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .icon-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .icon-controls input[type="text"] {
+      border-radius: var(--radius-full);
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      background: transparent;
+      padding: 5px 8px;
+      font-size: 11px;
+      color: inherit;
+      min-width: 90px;
+    }
+
+    .icon-controls input[type="color"] {
+      border-radius: var(--radius-full);
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      background: transparent;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+    }
+
+    /* Bottom nav / hint */
+    .bottom-hint {
+      font-size: 11px;
+      opacity: 0.8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .bottom-hint span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ios-pill {
+      border-radius: var(--radius-full);
+      padding: 4px 8px;
+      font-size: 10px;
+      border: 1px dashed rgba(148, 163, 184, 0.8);
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    html[data-theme="light"] .ios-pill {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Animated loading screen overlay */
+    .loader-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, #111827, #020617);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: calc(32px + var(--safe-bottom));
+      opacity: 1;
+      pointer-events: auto;
+      transition: opacity 480ms ease-out, visibility 480ms ease-out;
+    }
+
+    .loader-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loader-card {
+      width: 180px;
+      border-radius: 30px;
+      padding: 20px 16px 14px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      box-shadow: 0 22px 60px rgba(15, 23, 42, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .loader-logo {
+      width: 54px;
+      height: 54px;
+      border-radius: 20px;
+      background: conic-gradient(
+        from 210deg,
+        #7c3aed,
+        #ec4899,
+        #0ea5e9,
+        #7c3aed
+      );
+      position: relative;
+      overflow: hidden;
+      animation: spin 3200ms linear infinite;
+    }
+
+    .loader-logo-inner {
+      position: absolute;
+      inset: 6px;
+      border-radius: 18px;
+      background: radial-gradient(circle at top, #020617, #020617 55%, #1e293b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e5e7eb;
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 0.08em;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loader-bar {
+      width: 100%;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      overflow: hidden;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .loader-bar-inner {
+      width: 45%;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #a3e635, #22c55e);
+      animation: loading-swipe 1400ms ease-in-out infinite;
+    }
+
+    @keyframes loading-swipe {
+      0% { transform: translateX(-110%); }
+      50% { transform: translateX(10%); }
+      100% { transform: translateX(110%); }
+    }
+
+    .loader-label {
+      font-size: 11px;
+      opacity: 0.85;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated iOS-like loading screen -->
+  <div class="loader-overlay" id="loaderOverlay">
+    <div class="loader-card">
+      <div class="loader-logo">
+        <div class="loader-logo-inner">TAC</div>
+      </div>
+      <div class="loader-bar">
+        <div class="loader-bar-inner"></div>
+      </div>
+      <div class="loader-label">
+        Preparing mobile dev shell…
+      </div>
+    </div>
+  </div>
+
+  <!-- Actual app shell -->
+  <div class="app-root">
+    <div class="app-shell">
+      <div class="app-status-bar">
+        <div class="pill">
+          <span class="dot"></span>
+          <span id="statusLabel">Online • PWA Ready</span>
+        </div>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <span style="font-variant-numeric:tabular-nums;" id="statusClock">09:41</span>
+        </div>
+      </div>
+
+      <main class="app-main">
+        <header class="app-heading">
+          <div class="title-block">
+            <h1>TAC Mobile Dev Hub</h1>
+            <p>Mobil-first, iOS-ready shell • PWA • Push • Icon Lab</p>
+          </div>
+          <button type="button" class="theme-toggle" id="themeToggle">
+            <div class="theme-pill-dot"></div>
+            <span id="themeLabel">Auto</span>
+          </button>
+        </header>
+
+        <section class="card-grid">
+          <!-- Push / PWA card -->
+          <article class="card card-accent">
+            <h2 class="card-title">
+              🔔 Push & PWA
+              <span class="badge">iOS + Web</span>
+            </h2>
+            <p class="card-sub">
+              HTML5 Notifications + Service Worker. Teszt értesítés lokálisan – valódi push-hoz szerver kell.
+            </p>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button type="button" class="btn btn-primary" id="btnEnableNotifications">
+                Enable Notifications
+              </button>
+              <button type="button" class="btn btn-ghost" id="btnTestNotification">
+                Test Local Notification
+              </button>
+              <small style="font-size:10px;opacity:0.82;">
+                Tipp: iOS-en Add to Home Screen + engedélyezett értesítések mellett viselkedik legstabillabban.
+              </small>
+            </div>
+          </article>
+
+          <!-- Icon / splash generator card -->
+          <article class="card">
+            <h2 class="card-title">
+              🎨 Icon & Splash Lab
+            </h2>
+            <p class="card-sub">
+              Generálj Apple Touch ikon alapot, töltsd le, majd használd különböző méretben (splash-hez is).
+            </p>
+
+            <div class="icon-preview-wrap">
+              <div class="icon-preview">
+                <img id="iconPreview" alt="Icon preview" />
+              </div>
+
+              <div class="icon-controls">
+                <input
+                  type="text"
+                  id="iconText"
+                  maxlength="3"
+                  placeholder="TAC"
+                  value="TAC"
+                />
+                <input type="color" id="iconColor" value="#7c3aed" />
+                <button type="button" class="btn btn-ghost" id="btnDownloadIcon">
+                  PNG
+                </button>
+              </div>
+            </div>
+
+            <small style="font-size:10px;opacity:0.8;margin-top:6px;display:block;">
+              A generált ikon automatikusan beállításra kerül <code>apple-touch-icon</code>-ként is a futó sessionben.
+            </small>
+          </article>
+        </section>
+
+        <!-- PWA / iOS UX hints -->
+        <section class="card" style="margin-top:4px;">
+          <h2 class="card-title">
+            📲 iOS Add to Home + Dark/Light
+          </h2>
+          <p class="card-sub">
+            Ez a shell teljesen mobil-first. Használd alapként bármelyik projektedhez (Cloudflare Pages, GitHub Pages, stb.).
+          </p>
+
+          <div class="bottom-hint">
+            <span>
+              <span class="ios-pill">
+                iOS: Share ➜ Add to Home Screen
+              </span>
+            </span>
+            <span style="font-size:10px;">
+              PWA state:
+              <strong id="pwaStateLabel">browser</strong>
+            </span>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Hidden canvas for icon generation -->
+  <canvas id="iconCanvas" width="512" height="512" style="display:none;"></canvas>
+
+  <script>
+    // ------------------------
+    // Basic clock (iOS style)
+    // ------------------------
+    function updateClock() {
+      const el = document.getElementById("statusClock");
+      if (!el) return;
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      el.textContent = hh + ":" + mm;
+    }
+    updateClock();
+    setInterval(updateClock, 30000);
+
+    // ------------------------
+    // Dark / Light / Auto theme
+    // ------------------------
+    function getSystemTheme() {
+      return window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    }
+
+    function applyTheme(theme) {
+      const html = document.documentElement;
+      const themeLabel = document.getElementById("themeLabel");
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+
+      let effectiveTheme = theme;
+      if (theme === "system") {
+        effectiveTheme = getSystemTheme();
+      }
+
+      html.setAttribute("data-theme", effectiveTheme);
+      localStorage.setItem("tac-theme-mode", theme);
+
+      if (theme === "system") {
+        themeLabel.textContent = "Auto";
+      } else {
+        themeLabel.textContent =
+          theme.charAt(0).toUpperCase() + theme.slice(1);
+      }
+
+      if (metaTheme) {
+        metaTheme.setAttribute(
+          "content",
+          effectiveTheme === "dark" ? "#050816" : "#f5f5f7"
+        );
+      }
+    }
+
+    (function initTheme() {
+      const saved = localStorage.getItem("tac-theme-mode") || "system";
+      applyTheme(saved);
+      const toggleBtn = document.getElementById("themeToggle");
+      toggleBtn.addEventListener("click", () => {
+        const current = localStorage.getItem("tac-theme-mode") || "system";
+        const next =
+          current === "system"
+            ? "light"
+            : current === "light"
+            ? "dark"
+            : "system";
+        applyTheme(next);
+      });
+    })();
+
+    // ------------------------
+    // Detect standalone / PWA state
+    // ------------------------
+    function detectPWAState() {
+      const label = document.getElementById("pwaStateLabel");
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true;
+      if (isStandalone) {
+        label.textContent = "standalone";
+      } else {
+        label.textContent = "browser";
+      }
+    }
+    detectPWAState();
+    window.addEventListener("resize", detectPWAState);
+    window.addEventListener("load", detectPWAState);
+
+    // ------------------------
+    // Loading overlay hide
+    // ------------------------
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        const overlay = document.getElementById("loaderOverlay");
+        if (overlay) overlay.classList.add("hidden");
+      }, 900); // iOS-szerű finom delay
+    });
+
+    // ------------------------
+    // Inline manifest (Blob + link)
+    // ------------------------
+    (function injectManifest() {
+      const manifest = {
+        name: "TAC Mobile Shell",
+        short_name: "TAC Mobile",
+        start_url: ".",
+        display: "standalone",
+        background_color: "#050816",
+        theme_color: "#050816",
+        icons: [
+          {
+            src: "icon-192.png",
+            sizes: "192x192",
+            type: "image/png"
+          },
+          {
+            src: "icon-512.png",
+            sizes: "512x512",
+            type: "image/png"
+          }
+        ]
+      };
+
+      const blob = new Blob([JSON.stringify(manifest)], {
+        type: "application/json"
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("link");
+      link.rel = "manifest";
+      link.href = url;
+      document.head.appendChild(link);
+    })();
+
+    // ------------------------
+    // Service Worker (inline via Blob)
+    // NOTE: valódi pushhöz szerver kell (VAPID kulcsok, subscription kezelés).
+    // Itt egy alap SW kódot húzunk fel 1 fájlból.
+    // ------------------------
+    async function registerInlineServiceWorker() {
+      if (!("serviceWorker" in navigator)) return;
+      try {
+        const swCode = `
+          self.addEventListener('install', event => {
+            self.skipWaiting();
+          });
+          self.addEventListener('activate', event => {
+            event.waitUntil(clients.claim());
+          });
+
+          // Offline fallback például itt is megoldható, ha kell.
+          self.addEventListener('fetch', event => {
+            // pass-through basic
+          });
+
+          // Push event – valódi push szerverrel értelmes.
+          self.addEventListener('push', event => {
+            let data = {};
+            try {
+              data = event.data ? event.data.json() : {};
+            } catch (e) {
+              data = { title: 'TAC Push', body: event.data && event.data.text() };
+            }
+            const title = data.title || 'TAC Push';
+            const body = data.body || 'Hello from TAC Mobile Shell!';
+            event.waitUntil(
+              self.registration.showNotification(title, {
+                body,
+                icon: data.icon || undefined,
+                badge: data.badge || undefined,
+                data: data.data || {}
+              })
+            );
+          });
+
+          self.addEventListener('notificationclick', event => {
+            event.notification.close();
+            event.waitUntil(
+              clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+                if (list.length > 0) {
+                  const client = list[0];
+                  return client.focus();
+                }
+                return clients.openWindow('./');
+              })
+            );
+          });
+        `;
+        const blob = new Blob([swCode], { type: "text/javascript" });
+        const swUrl = URL.createObjectURL(blob);
+        const reg = await navigator.serviceWorker.register(swUrl);
+        console.log("Service worker registered (inline blob)", reg);
+      } catch (err) {
+        console.error("SW registration failed", err);
+      }
+    }
+    registerInlineServiceWorker();
+
+    // ------------------------
+    // Notification logic
+    // ------------------------
+    async function ensureNotificationPermission() {
+      if (!("Notification" in window)) {
+        alert("This device/browser does not support Notifications.");
+        return null;
+      }
+      let perm = Notification.permission;
+      if (perm === "default") {
+        perm = await Notification.requestPermission();
+      }
+      if (perm !== "granted") {
+        alert("Notification permission denied.");
+        return null;
+      }
+      return perm;
+    }
+
+    async function testLocalNotification() {
+      const perm = await ensureNotificationPermission();
+      if (!perm) return;
+
+      if ("serviceWorker" in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        reg.showNotification("TAC local notification", {
+          body: "HTML5 notification from inside the PWA shell.",
+          icon: undefined,
+          badge: undefined
+        });
+      } else {
+        new Notification("TAC local notification", {
+          body: "Fallback Notification object."
+        });
+      }
+    }
+
+    document
+      .getElementById("btnEnableNotifications")
+      .addEventListener("click", ensureNotificationPermission);
+
+    document
+      .getElementById("btnTestNotification")
+      .addEventListener("click", testLocalNotification);
+
+    // ------------------------
+    // Icon generator (canvas -> PNG + apple-touch-icon update)
+    // ------------------------
+    function generateIcon() {
+      const canvas = document.getElementById("iconCanvas");
+      const ctx = canvas.getContext("2d");
+      const text = (document.getElementById("iconText").value || "TAC").toUpperCase();
+      const bg = document.getElementById("iconColor").value || "#7c3aed";
+
+      // Background
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      grad.addColorStop(0, bg);
+      grad.addColorStop(1, "#020617");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Slight inner glow
+      ctx.fillStyle = "rgba(15,23,42,0.35)";
+      ctx.fillRect(28, 28, canvas.width - 56, canvas.height - 56);
+
+      // Text
+      ctx.fillStyle = "#e5e7eb";
+      ctx.font = "bold 220px system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+      const dataUrl = canvas.toDataURL("image/png");
+      const preview = document.getElementById("iconPreview");
+      preview.src = dataUrl;
+
+      // Update apple-touch-icon
+      const appleLink = document.getElementById("appleTouchIcon");
+      appleLink.href = dataUrl;
+
+      return dataUrl;
+    }
+
+    document.getElementById("iconText").addEventListener("input", generateIcon);
+    document.getElementById("iconColor").addEventListener("input", generateIcon);
+
+    document
+      .getElementById("btnDownloadIcon")
+      .addEventListener("click", () => {
+        const dataUrl = generateIcon();
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        a.download = "tac-icon-512.png";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+
+    // initial icon
+    generateIcon();
+  </script>
+</body>
+</html>
