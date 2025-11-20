@@ -1,0 +1,74 @@
+{
+  "name": "SecurityQuarantine",
+  "type": "object",
+  "properties": {
+    "moduleName": {
+      "type": "string",
+      "description": "Name of the quarantined module"
+    },
+    "role": {
+      "type": "string",
+      "description": "Module role (pattern, generator, etc.)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "quarantined",
+        "fixed_waiting_release",
+        "released"
+      ],
+      "default": "quarantined",
+      "description": "Current quarantine status"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Why the module was quarantined"
+    },
+    "lastTs": {
+      "type": "string",
+      "description": "Last metric timestamp"
+    },
+    "lastErrorCode": {
+      "type": "string",
+      "description": "Last error code from metrics"
+    },
+    "lastScan": {
+      "type": "string",
+      "description": "When the last security scan occurred"
+    },
+    "successRate": {
+      "type": "number",
+      "description": "Success rate that triggered quarantine"
+    },
+    "avgLatency": {
+      "type": "number",
+      "description": "Average latency that triggered quarantine"
+    },
+    "fix": {
+      "type": "object",
+      "description": "AI-generated fix details",
+      "properties": {
+        "suggestedAt": {
+          "type": "string"
+        },
+        "improvedCode": {
+          "type": "string"
+        },
+        "explanation": {
+          "type": "string"
+        },
+        "autoReleased": {
+          "type": "boolean"
+        }
+      }
+    },
+    "releasedAt": {
+      "type": "string",
+      "description": "When the module was released from quarantine"
+    }
+  },
+  "required": [
+    "moduleName",
+    "status"
+  ]
+}
